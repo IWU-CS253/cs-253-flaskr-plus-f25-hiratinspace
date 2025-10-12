@@ -2,16 +2,40 @@
 {% block body %}
   <form action="{{ url_for('add_entry') }}" method="post" class="add-entry">
     <dl>
-      <dt>Title:
+        <dt>Title:</dt>
       <dd><input type="text" size="30" name="title">
-      <dt>Text:
+        <dt>Text:</dt>
       <dd><textarea name="text" rows="5" cols="40"></textarea>
       <dd><input type="submit" value="Share">
+        <dt>Category:</dt>
+      <dd><input type="text" size="30" name="category" placeholder="Any text"></dd>
+      <dd><input type="submit" value="Share"></dd>
     </dl>
   </form>
+
+    <form method="get" action="{{ url_for('show_entries') }}" >
+        <label for="cat">Filter by category:</label>
+        <select id="cat" name="category">
+        <option value=""> All categories </option>
+        {% for cat in categories %}
+            <option value="{{ cat['category'] }}" {{ 'selected' if request.args.get('category') == cat['category'] else '' }}>{{ cat['category'] }}</option>
+        {% endfor %}
+        </select>
+        <button type="submit">Apply</button>
+        {% if request.args.get('category') %}
+        <a href="{{ url_for('show_entries') }}">Clear filter</a>
+        {% endif %}
+    </form>
+
   <ul class="entries">
   {% for entry in entries %}
-    <li><h2>{{ entry.title }}</h2>{{ entry.text|safe }}</li>
+    <li>
+        <h2>{{ entry.title }}</h2>{{ entry.text|safe }}
+        <form method="post" action="{{ url_for('delete_entry') }}">
+        <input type="hidden" name="title" value="{{ entry['title'] }}">
+        <button type="submit">Delete</button>
+        </form>
+    </li>
   {% else %}
     <li><em>Unbelievable.  No entries here so far</em></li>
   {% endfor %}
