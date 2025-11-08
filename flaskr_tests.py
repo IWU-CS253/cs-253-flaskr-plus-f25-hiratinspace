@@ -3,7 +3,6 @@ import app as flaskr
 import unittest
 import tempfile
 
-
 class FlaskrTestCase(unittest.TestCase):
 
     def setUp(self):
@@ -31,7 +30,6 @@ class FlaskrTestCase(unittest.TestCase):
         assert b'&lt;Hello&gt;' in rv.data
         assert b'<strong>HTML</strong> allowed here' in rv.data
         assert b'A category' in rv.data
-
 
 if __name__ == '__main__':
     unittest.main()

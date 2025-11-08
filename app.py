@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-    Flaskr
+    Flaskr Plus
     ~~~~~~
 
     A microblog example application written as Flask tutorial with
@@ -66,18 +66,23 @@ def close_db(error):
 
 @app.route('/')
 def show_entries():
+    # FLASKR PLUS CHANGE: filtering by category & categories dropdown
     db = get_db()
-    cur = db.execute('select title, text, category from entries where category = ? order by id desc')
+    category = request.args.get('category')
+    if category:
+        cur = db.execute('select id, title, text, category from entries where category = ? order by id desc', [category])
+    else:
+        cur = db.execute('select id, title, text, category from entries order by id desc')
     entries = cur.fetchall()
-    categories = db.execute('select distinct category from entries where category is not null').fetchall()
-    return render_template('show_entries.html', entries=entries, categories=categories)
+    cats = db.execute('select distinct category from entries where category is not null and category != "" order by category asc').fetchall()
+    return render_template('show_entries.html', entries=entries, categories=cats)
 
 
 @app.route('/add', methods=['POST'])
 def add_entry():
     db = get_db()
     db.execute('insert into entries (title, text, category) values (?, ?, ?)',
-               [request.form['title'], request.form['text'], request.form.get('category')])
+               [request.form['title'], request.form['text'], request.form.get('category')])  # FLASKR PLUS CHANGE: category
     db.commit()
     flash('New entry was successfully posted')
     return redirect(url_for('show_entries'))
@@ -85,8 +90,15 @@ def add_entry():
 
 @app.route('/delete', methods=['POST'])
 def delete_entry():
+    # FLASKR PLUS CHANGE: delete an entry by id
+    if not session.get('logged_in'):
+        abort(401)
+    post_id = request.form.get('id')
+    if not post_id:
+        abort(400)
     db = get_db()
-    db.execute('delete from entries where title = ?', [request.form.get('title')])
+    db.execute('delete from entries where id = ?', [post_id])
     db.commit()
     flash('Entry deleted')
     return redirect(url_for('show_entries'))
+
