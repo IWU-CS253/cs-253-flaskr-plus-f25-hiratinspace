@@ -103,5 +103,42 @@ def delete_entry():
     return redirect(url_for('show_entries'))
 
 
+@app.route('/edit/<int:post_id>', methods=['GET', 'POST'])
+def edit_entry(post_id):
+    if not session.get('logged_in'):
+        abort(401)
+
+    db = get_db()
+    entry = db.execute(
+        'SELECT id, title, category, text FROM entries WHERE id = ?',
+        (post_id,)
+    ).fetchone()
+    if entry is None:
+        abort(404)
+
+    if request.method == 'POST':
+        title = (request.form.get('title') or '').strip()
+        category = (request.form.get('category') or '').strip()
+        text = (request.form.get('text') or '').strip()
+
+        if not title or not text:
+            flash('Title and text are required.', 'warning')
+            return render_template('layout.html', entry=entry)
+
+        db.execute(
+            'UPDATE entries SET title = ?, category = ?, text = ? WHERE id = ?',
+            (title, category, text, post_id)
+        )
+        db.commit()
+        flash('Entry updated.', 'success')
+        return redirect(url_for('show_entries'))
+
+    return render_template('layout.html', entry=entry)
+
+
+
+
+
+
 
 
